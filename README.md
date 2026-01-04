@@ -132,16 +132,52 @@ To run as HTTP server instead of stdio:
 TRANSPORT=http PORT=3000 npm start
 ```
 
-## Docker Deployment
+## Railway Deployment
 
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --production
-COPY dist ./dist
-ENV NODE_ENV=production
-CMD ["node", "dist/index.js"]
+Deploy to Railway with one click or via CLI:
+
+### Option 1: Railway Dashboard
+
+1. Fork this repository
+2. Go to [Railway](https://railway.app) and create a new project
+3. Select "Deploy from GitHub repo"
+4. Add environment variables in Railway dashboard:
+   - `QUICKBOOKS_CLIENT_ID`
+   - `QUICKBOOKS_CLIENT_SECRET`
+   - `QUICKBOOKS_REFRESH_TOKEN`
+   - `QUICKBOOKS_COMPANY_ID`
+   - `QUICKBOOKS_ENVIRONMENT=production`
+5. Railway will auto-deploy using the included Dockerfile
+
+### Option 2: Railway CLI
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login and deploy
+railway login
+railway init
+railway up
+```
+
+### MCP Endpoint
+
+Once deployed, your MCP endpoint will be:
+```
+https://your-app.railway.app/mcp
+```
+
+Health check available at:
+```
+https://your-app.railway.app/health
+```
+
+## Docker Deployment (Local)
+
+```bash
+docker build -t quickbooks-mcp .
+docker run -p 3000:3000 --env-file .env quickbooks-mcp
 ```
 
 ## License
