@@ -497,13 +497,27 @@ async function runStdio(): Promise<void> {
 
 async function runHTTP(): Promise<void> {
   const app = express();
+
+  // CORS middleware for Claude Desktop
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Accept, mcp-session-id");
+    res.header("Access-Control-Expose-Headers", "mcp-session-id");
+
+    if (req.method === "OPTIONS") {
+      return res.status(200).end();
+    }
+    next();
+  });
+
   app.use(express.json());
 
   app.get("/health", (_req, res) => {
     res.json({ status: "ok", server: "quickbooks-mcp-server" });
   });
 
-  // Handle MCP requests - stateless mode for simplicity
+  // Handle MCP requests
   app.post("/mcp", async (req, res) => {
     try {
       const transport = new StreamableHTTPServerTransport({
@@ -520,9 +534,18 @@ async function runHTTP(): Promise<void> {
     } catch (error) {
       console.error("MCP request error:", error);
       if (!res.headersSent) {
-        res.status(500).json({ error: "Internal server error" });
+        res.status(500).json({
+          jsonrpc: "2.0",
+          error: { code: -32603, message: "Internal server error" },
+          id: null
+        });
       }
     }
+  });
+
+  // Handle DELETE for session cleanup
+  app.delete("/mcp", async (req, res) => {
+    res.status(200).json({ status: "ok" });
   });
 
   const port = parseInt(process.env.PORT || "3000");
