@@ -513,8 +513,10 @@ async function runHTTP(): Promise<void> {
   });
 
   const port = parseInt(process.env.PORT || "3000");
-  app.listen(port, () => {
-    console.error(`QuickBooks MCP Server running on http://localhost:${port}/mcp`);
+  const host = "0.0.0.0";
+  app.listen(port, host, () => {
+    console.error(`QuickBooks MCP Server running on port ${port}`);
+    console.error(`Health: /health | MCP: /mcp`);
   });
 }
 
