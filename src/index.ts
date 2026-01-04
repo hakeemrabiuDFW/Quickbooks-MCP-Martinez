@@ -14,6 +14,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import express from "express";
 import { z } from "zod";
 import dotenv from "dotenv";
+import crypto from "crypto";
 import { QuickBooksClient } from "./services/quickbooks-client.js";
 
 dotenv.config();
@@ -502,14 +503,26 @@ async function runHTTP(): Promise<void> {
     res.json({ status: "ok", server: "quickbooks-mcp-server" });
   });
 
+  // Handle MCP requests - stateless mode for simplicity
   app.post("/mcp", async (req, res) => {
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-      enableJsonResponse: true
-    });
-    res.on("close", () => transport.close());
-    await server.connect(transport);
-    await transport.handleRequest(req, res, req.body);
+    try {
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => crypto.randomUUID(),
+        enableJsonResponse: true
+      });
+
+      res.on("close", () => {
+        transport.close();
+      });
+
+      await server.connect(transport);
+      await transport.handleRequest(req, res, req.body);
+    } catch (error) {
+      console.error("MCP request error:", error);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Internal server error" });
+      }
+    }
   });
 
   const port = parseInt(process.env.PORT || "3000");
