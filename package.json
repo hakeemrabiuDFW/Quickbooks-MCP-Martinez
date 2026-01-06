@@ -7,7 +7,18 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "test": "jest",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration/mcp-protocol.test.ts",
+    "test:api": "RUN_API_TESTS=true jest tests/integration/api-real.test.ts --runInBand",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:meta": "tsx tests/meta-testing/run-meta-tests.ts",
+    "test:meta:chat1": "tsx tests/meta-testing/run-meta-tests.ts chat1-accountant",
+    "test:meta:chat2": "tsx tests/meta-testing/run-meta-tests.ts chat2-operations",
+    "test:meta:chat3": "tsx tests/meta-testing/run-meta-tests.ts chat3-owner",
+    "test:meta:parallel": "npm run test:meta:chat1 & npm run test:meta:chat2 & npm run test:meta:chat3 & wait"
   },
   "keywords": [
     "mcp",
@@ -31,7 +42,10 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.0",
     "@types/node": "^22.0.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
   },

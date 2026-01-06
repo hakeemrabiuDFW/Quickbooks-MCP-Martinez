@@ -1,98 +1,21 @@
 /**
- * QuickBooks Online API Client
- * 
+ * QuickBooks Online OAuth Client
+ *
  * Handles authentication and API requests to QuickBooks Online.
  */
 
 import axios, { AxiosInstance } from "axios";
-
-interface QBConfig {
-  clientId: string;
-  clientSecret: string;
-  refreshToken: string;
-  companyId: string;
-  environment: "sandbox" | "production";
-}
-
-interface TokenResponse {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-}
-
-// QuickBooks entity interfaces
-interface QBRef {
-  value: string;
-  name?: string;
-}
-
-interface QBEmailAddress {
-  Address: string;
-}
-
-interface QBPhoneNumber {
-  FreeFormNumber: string;
-}
-
-export interface QBCustomer {
-  Id: string;
-  DisplayName: string;
-  PrimaryEmailAddr?: QBEmailAddress;
-  PrimaryPhone?: QBPhoneNumber;
-  Balance?: number;
-  Active: boolean;
-}
-
-export interface QBInvoice {
-  Id: string;
-  DocNumber?: string;
-  CustomerRef?: QBRef;
-  TxnDate: string;
-  DueDate: string;
-  TotalAmt: number;
-  Balance: number;
-  Line?: Array<{
-    Description?: string;
-    Amount?: number;
-    DetailType: string;
-  }>;
-}
-
-export interface QBAccount {
-  Id: string;
-  Name: string;
-  AccountType?: string;
-  CurrentBalance?: number;
-  Active: boolean;
-}
-
-export interface QBVendor {
-  Id: string;
-  DisplayName: string;
-  PrimaryEmailAddr?: QBEmailAddress;
-  PrimaryPhone?: QBPhoneNumber;
-  Balance?: number;
-  Active: boolean;
-}
-
-export interface QBBill {
-  Id: string;
-  DocNumber?: string;
-  VendorRef?: QBRef;
-  TxnDate: string;
-  DueDate: string;
-  TotalAmt: number;
-  Balance: number;
-}
-
-export interface ProfitLossReport {
-  totalIncome: number;
-  totalCOGS: number;
-  grossProfit: number;
-  totalExpenses: number;
-  netIncome: number;
-  details?: Record<string, number>;
-}
+import type {
+  QBConfig,
+  TokenResponse,
+  QBCustomer,
+  QBInvoice,
+  QBAccount,
+  QBVendor,
+  QBBill,
+  ProfitLossReport,
+  QuickBooksError
+} from "../types.js";
 
 export class QuickBooksClient {
   private config: QBConfig;
@@ -102,11 +25,11 @@ export class QuickBooksClient {
 
   constructor(config: QBConfig) {
     this.config = config;
-    
+
     const baseURL = config.environment === "production"
       ? "https://quickbooks.api.intuit.com"
       : "https://sandbox-quickbooks.api.intuit.com";
-    
+
     this.api = axios.create({
       baseURL: `${baseURL}/v3/company/${config.companyId}`,
       headers: {
@@ -150,7 +73,7 @@ export class QuickBooksClient {
 
     this.accessToken = response.data.access_token;
     this.tokenExpiry = new Date(Date.now() + (response.data.expires_in - 60) * 1000);
-    
+
     // Update refresh token if new one provided
     if (response.data.refresh_token) {
       this.config.refreshToken = response.data.refresh_token;
@@ -186,11 +109,11 @@ export class QuickBooksClient {
     search?: string;
   }): Promise<QBCustomer[]> {
     const conditions: string[] = [];
-    
+
     if (options.activeOnly !== false) {
       conditions.push("Active = true");
     }
-    
+
     if (options.search) {
       conditions.push(`DisplayName LIKE '%${options.search}%'`);
     }
@@ -284,7 +207,7 @@ export class QuickBooksClient {
     offset?: number;
   }): Promise<QBAccount[]> {
     const conditions: string[] = ["Active = true"];
-    
+
     if (options.accountType) {
       conditions.push(`AccountType = '${options.accountType}'`);
     }
@@ -305,7 +228,7 @@ export class QuickBooksClient {
     activeOnly?: boolean;
   }): Promise<QBVendor[]> {
     const conditions: string[] = [];
-    
+
     if (options.activeOnly !== false) {
       conditions.push("Active = true");
     }
@@ -357,7 +280,7 @@ export class QuickBooksClient {
     });
 
     const report = response.data;
-    
+
     // Parse the report structure
     // QuickBooks reports have a complex nested structure
     const parseAmount = (rows: any[], type: string): number => {
@@ -370,7 +293,7 @@ export class QuickBooksClient {
     };
 
     const rows = report.Rows?.Row || [];
-    
+
     return {
       totalIncome: parseAmount(rows, "Income"),
       totalCOGS: parseAmount(rows, "COGS"),
@@ -380,3 +303,5 @@ export class QuickBooksClient {
     };
   }
 }
+
+export type { QBConfig, QBCustomer, QBInvoice, QBAccount, QBVendor, QBBill, ProfitLossReport };
