@@ -1,0 +1,133 @@
+{
+  "scenario": "chat2-operations",
+  "persona": "Martinez Cleaning LLC Operations Manager",
+  "description": "Daily operations - invoice creation, customer billing, vendor management",
+  "conversation": [
+    {
+      "step": 1,
+      "user_message": "I need to find customer 'ABC Office Building' to create an invoice for this month's cleaning services.",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_customers",
+          "params": {
+            "search": "ABC",
+            "active_only": true,
+            "response_format": "json"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["DisplayName", "Id"],
+        "response_type": "json",
+        "min_results": 0
+      }
+    },
+    {
+      "step": 2,
+      "user_message": "Create an invoice for customer ID 123 for monthly cleaning services at $2,500.",
+      "tool_calls": [
+        {
+          "tool": "qbo_create_invoice",
+          "params": {
+            "customer_id": "123",
+            "line_items": [
+              {
+                "description": "Monthly Office Cleaning - January 2026",
+                "amount": 2500,
+                "quantity": 1
+              }
+            ],
+            "due_date": "2026-02-15",
+            "memo": "Monthly recurring cleaning service"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Invoice created successfully", "2500"],
+        "response_type": "text",
+        "success_indicator": "✅"
+      }
+    },
+    {
+      "step": 3,
+      "user_message": "Show me all invoices created this month to review our billing.",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_invoices",
+          "params": {
+            "start_date": "2026-01-01",
+            "end_date": "2026-01-31",
+            "status": "all",
+            "response_format": "markdown"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Invoice", "Total"],
+        "response_type": "markdown"
+      }
+    },
+    {
+      "step": 4,
+      "user_message": "List all our active vendors so I can review our supplier relationships.",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_vendors",
+          "params": {
+            "active_only": true,
+            "limit": 50,
+            "response_format": "json"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["DisplayName", "Active"],
+        "response_type": "json",
+        "validate_schema": true
+      }
+    },
+    {
+      "step": 5,
+      "user_message": "Show me bills due in the next 30 days that need to be paid.",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_bills",
+          "params": {
+            "status": "unpaid",
+            "limit": 100,
+            "response_format": "markdown"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Bill", "Vendor", "Due"],
+        "response_type": "markdown"
+      }
+    },
+    {
+      "step": 6,
+      "user_message": "Get a list of all customers with outstanding balances.",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_customers",
+          "params": {
+            "active_only": true,
+            "limit": 100,
+            "response_format": "json"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Balance", "DisplayName"],
+        "response_type": "json",
+        "validate_balances": true
+      }
+    }
+  ],
+  "success_criteria": {
+    "all_tools_succeed": true,
+    "invoice_created": true,
+    "total_time_under_ms": 15000,
+    "data_consistency": true
+  }
+}

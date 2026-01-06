@@ -10,9 +10,15 @@
     "dev": "tsx watch src/index.ts",
     "test": "jest",
     "test:unit": "jest tests/unit",
-    "test:integration": "jest tests/integration",
+    "test:integration": "jest tests/integration/mcp-protocol.test.ts",
+    "test:api": "RUN_API_TESTS=true jest tests/integration/api-real.test.ts --runInBand",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:meta": "tsx tests/meta-testing/run-meta-tests.ts",
+    "test:meta:chat1": "tsx tests/meta-testing/run-meta-tests.ts chat1-accountant",
+    "test:meta:chat2": "tsx tests/meta-testing/run-meta-tests.ts chat2-operations",
+    "test:meta:chat3": "tsx tests/meta-testing/run-meta-tests.ts chat3-owner",
+    "test:meta:parallel": "npm run test:meta:chat1 & npm run test:meta:chat2 & npm run test:meta:chat3 & wait"
   },
   "keywords": [
     "mcp",

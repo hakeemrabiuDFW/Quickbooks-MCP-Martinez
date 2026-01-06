@@ -1,0 +1,142 @@
+{
+  "scenario": "chat3-owner",
+  "persona": "Martinez Cleaning LLC Business Owner",
+  "description": "Executive overview - business health, cash flow, key metrics",
+  "conversation": [
+    {
+      "step": 1,
+      "user_message": "Give me a high-level view of our business performance for Q4 2025.",
+      "tool_calls": [
+        {
+          "tool": "qbo_profit_loss_report",
+          "params": {
+            "start_date": "2025-10-01",
+            "end_date": "2025-12-31",
+            "response_format": "markdown"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Total Income", "Net Income", "Gross Profit"],
+        "response_type": "markdown",
+        "calculate_margins": true
+      }
+    },
+    {
+      "step": 2,
+      "user_message": "How much money do we have in the bank right now?",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_accounts",
+          "params": {
+            "account_type": "Bank",
+            "response_format": "json"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["CurrentBalance", "Bank"],
+        "response_type": "json",
+        "sum_balances": true
+      }
+    },
+    {
+      "step": 3,
+      "user_message": "Who are our top customers by account balance?",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_customers",
+          "params": {
+            "active_only": true,
+            "limit": 100,
+            "response_format": "json"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["DisplayName", "Balance"],
+        "response_type": "json",
+        "sort_by_balance": true
+      }
+    },
+    {
+      "step": 4,
+      "user_message": "What's our total accounts receivable (money customers owe us)?",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_invoices",
+          "params": {
+            "status": "open",
+            "limit": 1000,
+            "response_format": "json"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Balance"],
+        "response_type": "json",
+        "calculate_total_ar": true
+      }
+    },
+    {
+      "step": 5,
+      "user_message": "What's our total accounts payable (money we owe vendors)?",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_bills",
+          "params": {
+            "status": "unpaid",
+            "limit": 1000,
+            "response_format": "json"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Balance"],
+        "response_type": "json",
+        "calculate_total_ap": true
+      }
+    },
+    {
+      "step": 6,
+      "user_message": "Show me our expense accounts to see where money is going.",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_accounts",
+          "params": {
+            "account_type": "Expense",
+            "response_format": "markdown"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Expense", "CurrentBalance"],
+        "response_type": "markdown"
+      }
+    },
+    {
+      "step": 7,
+      "user_message": "Give me a year-to-date P&L to see how we're tracking for 2026.",
+      "tool_calls": [
+        {
+          "tool": "qbo_profit_loss_report",
+          "params": {
+            "start_date": "2026-01-01",
+            "end_date": "2026-01-31",
+            "response_format": "markdown"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Net Income", "Total Income"],
+        "response_type": "markdown"
+      }
+    }
+  ],
+  "success_criteria": {
+    "all_tools_succeed": true,
+    "total_time_under_ms": 20000,
+    "data_consistency": true,
+    "financial_calculations_accurate": true
+  }
+}

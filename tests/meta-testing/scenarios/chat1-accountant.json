@@ -1,0 +1,103 @@
+{
+  "scenario": "chat1-accountant",
+  "persona": "Martinez Cleaning LLC Accountant",
+  "description": "Month-end closing workflow - financial reporting and reconciliation",
+  "conversation": [
+    {
+      "step": 1,
+      "user_message": "I need to prepare the month-end financial report for December 2025. Can you show me the profit and loss statement?",
+      "tool_calls": [
+        {
+          "tool": "qbo_profit_loss_report",
+          "params": {
+            "start_date": "2025-12-01",
+            "end_date": "2025-12-31",
+            "response_format": "markdown"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Total Income", "Total Expenses", "Net Income"],
+        "response_type": "markdown",
+        "min_length": 100
+      }
+    },
+    {
+      "step": 2,
+      "user_message": "What's the current balance in all bank accounts?",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_accounts",
+          "params": {
+            "account_type": "Bank",
+            "response_format": "markdown"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Bank", "CurrentBalance"],
+        "response_type": "markdown"
+      }
+    },
+    {
+      "step": 3,
+      "user_message": "Show me all unpaid invoices to understand our accounts receivable.",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_invoices",
+          "params": {
+            "status": "open",
+            "limit": 100,
+            "response_format": "json"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Balance", "CustomerRef"],
+        "response_type": "json",
+        "validate_schema": true
+      }
+    },
+    {
+      "step": 4,
+      "user_message": "List all unpaid bills to understand our accounts payable.",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_bills",
+          "params": {
+            "status": "unpaid",
+            "limit": 100,
+            "response_format": "json"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Balance", "VendorRef"],
+        "response_type": "json",
+        "validate_schema": true
+      }
+    },
+    {
+      "step": 5,
+      "user_message": "Show me the full chart of accounts with current balances.",
+      "tool_calls": [
+        {
+          "tool": "qbo_list_accounts",
+          "params": {
+            "account_type": "all",
+            "response_format": "markdown"
+          }
+        }
+      ],
+      "validation": {
+        "should_contain": ["Bank", "Income", "Expense", "Accounts Receivable"],
+        "response_type": "markdown"
+      }
+    }
+  ],
+  "success_criteria": {
+    "all_tools_succeed": true,
+    "total_time_under_ms": 10000,
+    "data_consistency": true
+  }
+}
