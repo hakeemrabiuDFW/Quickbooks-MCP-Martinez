@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-01-06T04:22:30.192Z",
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1
+  },
+  "results": [
+    {
+      "scenario": "chat1-accountant",
+      "passed": false,
+      "duration": 866,
+      "steps_completed": 0,
+      "steps_total": 5,
+      "errors": [
+        "Step 1: Missing expected content: Total Income",
+        "Step 2: Missing expected content: Bank",
+        "Step 3: Missing expected content: Balance",
+        "Step 4: Missing expected content: Balance",
+        "Step 5: Missing expected content: Bank"
+      ],
+      "metrics": {
+        "total_tools_called": 5,
+        "successful_calls": 0,
+        "failed_calls": 5,
+        "avg_response_time": 173
+      }
+    }
+  ]
+}
